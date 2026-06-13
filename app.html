@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f5132">
+  <meta name="application-name" content="دفتر النتائج">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="دفتر النتائج">
+  <link rel="manifest" href="app.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+  <title>دفتر تريكس</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">دفتر النتائج الذكي</p>
+      <h1>تريكس</h1>
+    </div>
+    <div class="header-actions">
+      <button class="install-button" id="installAppButton" type="button">
+        <span class="install-symbol" aria-hidden="true">↓</span>
+        <span>تثبيت التطبيق</span>
+      </button>
+      <button class="icon-button" id="newGameButton" title="مباراة جديدة" aria-label="مباراة جديدة">
+        <span aria-hidden="true">+</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="screen active" id="setupScreen">
+      <div class="setup-intro">
+        <div class="deck-mark" aria-hidden="true">
+          <span class="red">♥</span><span>♠</span><span class="red">♦</span><span>♣</span>
+        </div>
+        <h2>جهّز الجلسة</h2>
+        <p>اختر نظام المباراة، اكتب أسماء اللاعبين، وابدأ تسجيل ما يحدث على الطاولة.</p>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">اللعبة</span>
+        <div class="segmented game-segmented" role="radiogroup" aria-label="اللعبة">
+          <button class="segment game-choice active" data-game="trix" role="radio" aria-checked="true">تريكس</button>
+          <button class="segment game-choice" data-game="complex" role="radio" aria-checked="false">كومبلكس</button>
+          <button class="segment game-choice" data-game="tarneeb" role="radio" aria-checked="false">طرنيب</button>
+          <button class="segment game-choice" data-game="hand" role="radio" aria-checked="false">هاند</button>
+        </div>
+      </div>
+
+      <div class="control-group" id="modeControl">
+        <span class="control-label">نظام اللعب</span>
+        <div class="segmented" role="radiogroup" aria-label="نظام اللعب">
+          <button class="segment mode-choice active" data-mode="individual" role="radio" aria-checked="true">فردي</button>
+          <button class="segment mode-choice" data-mode="partnership" role="radio" aria-checked="false">شراكة</button>
+        </div>
+      </div>
+
+      <div class="control-group hidden" id="targetControl">
+        <span class="control-label">تنتهي المباراة عند</span>
+        <div class="segmented target-segmented" role="radiogroup" aria-label="نقاط نهاية المباراة">
+          <button class="segment target-choice active" data-target="31" role="radio" aria-checked="true">31</button>
+          <button class="segment target-choice" data-target="41" role="radio" aria-checked="false">41</button>
+          <button class="segment target-choice" data-target="61" role="radio" aria-checked="false">61</button>
+        </div>
+      </div>
+
+      <div class="control-group hidden" id="handEndControl">
+        <span class="control-label">طريقة إنهاء هاند</span>
+        <div class="segmented hand-end-segmented" role="radiogroup" aria-label="طريقة إنهاء هاند">
+          <button class="segment hand-end-choice active" data-hand-end="manual" role="radio" aria-checked="true">يدوي</button>
+          <button class="segment hand-end-choice" data-hand-end="five" role="radio" aria-checked="false">بعد 5 جولات</button>
+          <button class="segment hand-end-choice" data-hand-end="minus200" role="radio" aria-checked="false">عند سالب 200</button>
+        </div>
+      </div>
+
+      <div class="players-form" id="playersForm"></div>
+
+      <button class="primary-button" id="startGameButton">ابدأ المباراة</button>
+    </section>
+
+    <section class="screen" id="gameScreen">
+      <section class="score-strip" id="scoreStrip" aria-label="النتائج الحالية"></section>
+
+      <div class="game-layout">
+        <div class="game-main">
+          <section class="round-picker">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">اختر الجولة</p>
+                <h2 id="roundHeading">ماذا لعبتم؟</h2>
+                <div class="kingdom-status" id="kingdomStatus"></div>
+              </div>
+              <span class="round-counter" id="roundCounter">0 جولة</span>
+            </div>
+            <div class="round-tabs" id="roundTabs"></div>
+          </section>
+
+          <section class="round-workspace" id="roundWorkspace"></section>
+
+          <section class="history-section">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">سجل المباراة</p>
+                <h2>الجولات السابقة</h2>
+              </div>
+              <button class="text-button" id="undoButton" disabled>تراجع</button>
+            </div>
+            <div class="history-list" id="historyList">
+              <p class="empty-state">لم تُسجّل أي جولة بعد.</p>
+            </div>
+          </section>
+        </div>
+
+        <aside class="quick-guide" id="quickGuide">
+          <button class="quick-guide-toggle" id="quickGuideToggle" aria-expanded="true">
+            <span>دليل سريع</span>
+            <span aria-hidden="true">⌃</span>
+          </button>
+          <div class="quick-guide-content" id="quickGuideContent"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="iosInstallDialog">
+    <div class="dialog-content install-dialog-content">
+      <img src="icons/icon-180.png" alt="" class="install-dialog-icon">
+      <h2>تثبيت التطبيق على الآيفون</h2>
+      <ol class="install-steps">
+        <li>افتح الموقع باستخدام متصفح سفاري.</li>
+        <li>اضغط زر المشاركة أسفل الشاشة.</li>
+        <li>اختر «إضافة إلى الشاشة الرئيسية» ثم اضغط «إضافة».</li>
+      </ol>
+      <button class="primary-button" id="closeIosInstallDialog" type="button">حسنًا</button>
+    </div>
+  </dialog>
+
+  <dialog id="confirmDialog">
+    <div class="dialog-content">
+      <h2 id="dialogTitle">تأكيد الجولة</h2>
+      <div id="dialogSummary"></div>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancelDialogButton">عودة</button>
+        <button class="primary-button" id="confirmDialogButton">حفظ الجولة</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="scoring.js"></script>
+  <script src="progression.js"></script>
+  <script src="tarneeb-scoring.js"></script>
+  <script src="hand-end.js"></script>
+  <script src="complex-scoring.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

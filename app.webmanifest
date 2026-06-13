@@ -5,7 +5,7 @@
   "description": "تسجيل وحساب نتائج تريكس وكومبلكس وطرنيب وهاند.",
   "lang": "ar",
   "dir": "rtl",
-  "start_url": "/",
+  "start_url": "/app.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

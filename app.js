@@ -164,7 +164,8 @@ function showSetup() {
 }
 
 function renderGame() {
-  document.querySelector(".app-header h1").textContent =
+  document.querySelector(".app-header h1").textContent = "دفتر النتائج";
+  document.querySelector(".app-header .eyebrow").textContent =
     state.game === "tarneeb" ? "طرنيب" :
     state.game === "hand" ? "هاند" :
     state.game === "complex" ? "كومبلكس" : "تريكس";

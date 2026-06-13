@@ -40,6 +40,7 @@ const defaultState = {
 let state = loadState();
 let pendingRound = null;
 let toastTimer = null;
+let deferredInstallPrompt = null;
 
 const setupScreen = document.getElementById("setupScreen");
 const gameScreen = document.getElementById("gameScreen");
@@ -59,6 +60,8 @@ const handEndControl = document.getElementById("handEndControl");
 const quickGuide = document.getElementById("quickGuide");
 const quickGuideToggle = document.getElementById("quickGuideToggle");
 const quickGuideContent = document.getElementById("quickGuideContent");
+const installAppButton = document.getElementById("installAppButton");
+const iosInstallDialog = document.getElementById("iosInstallDialog");
 
 function loadState() {
   try {
@@ -164,8 +167,7 @@ function showSetup() {
 }
 
 function renderGame() {
-  document.querySelector(".app-header h1").textContent = "دفتر النتائج";
-  document.querySelector(".app-header .eyebrow").textContent =
+  document.querySelector(".app-header h1").textContent =
     state.game === "tarneeb" ? "طرنيب" :
     state.game === "hand" ? "هاند" :
     state.game === "complex" ? "كومبلكس" : "تريكس";
@@ -292,7 +294,6 @@ function renderTarneebWorkspace() {
         <h3>الفريق الفائز</h3>
         <strong class="winner-name">${escapeHtml(teamNames(winner))}</strong>
         <span class="winner-score">${formatScore(state.tarneebScores[winner])} نقطة</span>
-        <button class="share-button" onclick="shareResult()">شارك النتيجة 📤</button>
       </div>
     `;
     return;
@@ -447,7 +448,6 @@ function renderComplexWorkspace() {
         <h3>${winners.length > 1 ? "تعادل في المركز الأول" : "الفائز بالمباراة"}</h3>
         <strong class="winner-name">${escapeHtml(winners.map(entry => entry.name).join(" و"))}</strong>
         <span class="winner-score">${formatScore(entries[0].score)} نقطة</span>
-        <button class="share-button" onclick="shareResult()">شارك النتيجة 📤</button>
       </div>
     `;
     return;
@@ -648,7 +648,6 @@ function renderHandWorkspace() {
         <h3>${winners.length > 1 ? "تعادل في المركز الأول" : "الفائز بالمباراة"}</h3>
         <strong class="winner-name">${escapeHtml(winners.map(entry => entry.name).join(" و"))}</strong>
         <span class="winner-score">${formatScore(ranking[0].score)} نقطة</span>
-        <button class="share-button" onclick="shareResult()">شارك النتيجة 📤</button>
       </div>
     `;
     return;
@@ -785,7 +784,6 @@ function renderWorkspace() {
         <h3>${result.title}</h3>
         <strong class="winner-name">${result.name}</strong>
         <span class="winner-score">${result.score}</span>
-        <button class="share-button" onclick="shareResult()">شارك النتيجة 📤</button>
         <div class="final-ranking">
           ${result.ranking.map((entry, index) => `
             <div class="final-ranking-row ${index === 0 ? "winner" : ""}">
@@ -1766,73 +1764,57 @@ document.getElementById("cancelDialogButton").addEventListener("click", () => {
 });
 document.getElementById("confirmDialogButton").addEventListener("click", commitRound);
 
-function shareResult() {
-  const gameLabel = {
-    trix: "تريكس", complex: "كومبلكس", tarneeb: "طرنيب", hand: "هاند"
-  }[state.game];
-
-  const lines = [`🃏 نتائج ${gameLabel}`, "─────────────"];
-  const medals = ["🥇", "🥈", "🥉", "4️⃣"];
-
-  if (state.game === "tarneeb") {
-    const sorted = [
-      { name: teamNames(0), score: state.tarneebScores[0] },
-      { name: teamNames(1), score: state.tarneebScores[1] }
-    ].sort((a, b) => b.score - a.score);
-    sorted.forEach((entry, i) => lines.push(`${medals[i]} ${entry.name}: ${entry.score} نقطة`));
-
-  } else if (state.game === "hand") {
-    const names = state.mode === "partnership" ? [teamNames(0), teamNames(1)] : state.players;
-    const sorted = state.handScores
-      .map((score, i) => ({ name: names[i], score }))
-      .sort((a, b) => a.score - b.score);
-    sorted.forEach((entry, i) => lines.push(`${medals[i]} ${entry.name}: ${entry.score} نقطة`));
-    lines.push("─────────────");
-    lines.push("الأقل نقاطًا يفوز");
-
-  } else if (state.game === "complex") {
-    const entries = state.mode === "partnership"
-      ? [
-          { name: teamNames(0), score: state.complexScores[0] + state.complexScores[2] },
-          { name: teamNames(1), score: state.complexScores[1] + state.complexScores[3] }
-        ]
-      : state.players.map((name, i) => ({ name, score: state.complexScores[i] }));
-    entries.sort((a, b) => b.score - a.score);
-    entries.forEach((entry, i) => lines.push(`${medals[i]} ${entry.name}: ${entry.score} نقطة`));
-
-  } else {
-    const entries = state.mode === "partnership"
-      ? [
-          { name: `${state.players[0]} و${state.players[2]}`, score: state.scores[0] + state.scores[2] },
-          { name: `${state.players[1]} و${state.players[3]}`, score: state.scores[1] + state.scores[3] }
-        ]
-      : state.players.map((name, i) => ({ name, score: state.scores[i] }));
-    entries.sort((a, b) => b.score - a.score);
-    entries.forEach((entry, i) => lines.push(`${medals[i]} ${entry.name}: ${entry.score} نقطة`));
-  }
-
-  lines.push("─────────────");
-  lines.push("📱 دفتر تريكس الذكي");
-
-  const text = lines.join("\n");
-  const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-
-  if (isMobile && navigator.share) {
-    navigator.share({ text }).catch(() => {});
-  } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => {
-      showToast("✓ تم نسخ النتيجة — الصقها في واتساب");
-    });
-  } else {
-    const area = document.createElement("textarea");
-    area.value = text;
-    document.body.appendChild(area);
-    area.select();
-    document.execCommand("copy");
-    document.body.removeChild(area);
-    showToast("✓ تم نسخ النتيجة");
-  }
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
+
+function isStandaloneApp() {
+  return window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+}
+
+function updateInstallButton() {
+  installAppButton.classList.toggle("hidden", isStandaloneApp());
+}
+
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  updateInstallButton();
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  installAppButton.classList.add("hidden");
+  showToast("تم تثبيت التطبيق بنجاح.");
+});
+
+installAppButton.addEventListener("click", async () => {
+  if (isStandaloneApp()) {
+    showToast("التطبيق مثبت على جهازك.");
+    return;
+  }
+
+  if (isIosDevice()) {
+    iosInstallDialog.showModal();
+    return;
+  }
+
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    return;
+  }
+
+  showToast("اختر «تثبيت التطبيق» من قائمة المتصفح.");
+});
+
+document.getElementById("closeIosInstallDialog").addEventListener("click", () => {
+  iosInstallDialog.close();
+});
 
 renderSetup();
 if (state.history.length || state.tarneebHistory.length || state.handHistory.length || state.complexHistory.length) showGame();
+updateInstallButton();

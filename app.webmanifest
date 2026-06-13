@@ -1,0 +1,29 @@
+{
+  "id": "/",
+  "name": "دفتر النتائج الذكي",
+  "short_name": "دفتر النتائج",
+  "description": "تسجيل وحساب نتائج تريكس وكومبلكس وطرنيب وهاند.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f2e9",
+  "theme_color": "#0f5132",
+  "categories": ["games", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -4,18 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0f5132">
-  <title>دفتر النتائج الذكي</title>
+  <meta name="application-name" content="دفتر النتائج">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="دفتر النتائج">
+  <link rel="manifest" href="app.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+  <title>دفتر تريكس</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="app-header">
     <div>
-      <p class="eyebrow">سجّل النتائج، الحسابات علينا</p>
-      <h1>دفتر النتائج</h1>
+      <p class="eyebrow">دفتر النتائج الذكي</p>
+      <h1>تريكس</h1>
     </div>
-    <button class="icon-button" id="newGameButton" title="مباراة جديدة" aria-label="مباراة جديدة">
-      <span aria-hidden="true">+</span>
-    </button>
+    <div class="header-actions">
+      <button class="install-button" id="installAppButton" type="button">
+        <span class="install-symbol" aria-hidden="true">↓</span>
+        <span>تثبيت التطبيق</span>
+      </button>
+      <button class="icon-button" id="newGameButton" title="مباراة جديدة" aria-label="مباراة جديدة">
+        <span aria-hidden="true">+</span>
+      </button>
+    </div>
   </header>
 
   <main>
@@ -114,6 +127,19 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="iosInstallDialog">
+    <div class="dialog-content install-dialog-content">
+      <img src="icons/icon-180.png" alt="" class="install-dialog-icon">
+      <h2>تثبيت التطبيق على الآيفون</h2>
+      <ol class="install-steps">
+        <li>افتح الموقع باستخدام متصفح سفاري.</li>
+        <li>اضغط زر المشاركة أسفل الشاشة.</li>
+        <li>اختر «إضافة إلى الشاشة الرئيسية» ثم اضغط «إضافة».</li>
+      </ol>
+      <button class="primary-button" id="closeIosInstallDialog" type="button">حسنًا</button>
+    </div>
+  </dialog>
 
   <dialog id="confirmDialog">
     <div class="dialog-content">

@@ -49,6 +49,29 @@ button { cursor: pointer; }
 .app-header h1 { font-size: 24px; letter-spacing: 0; }
 .eyebrow { margin: 0 0 3px; color: inherit; font-size: 11px; font-weight: 700; opacity: .72; }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.install-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.30);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(255,255,255,.12);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.install-button:hover { background: rgba(255,255,255,.20); }
+.install-symbol { margin-left: 6px; font-size: 19px; line-height: 1; }
+
 .icon-button {
   width: 42px;
   height: 42px;
@@ -605,11 +628,29 @@ dialog::backdrop { background: rgba(10,20,14,.56); }
 .dialog-content h2 { margin: 0 0 14px; font-size: 20px; }
 .dialog-score-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
 .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 20px; }
+.install-dialog-content { text-align: center; }
+.install-dialog-icon { width: 86px; height: 86px; border-radius: 18px; }
+.install-dialog-content h2 { margin-top: 12px; }
+.install-steps {
+  margin: 18px 0 22px;
+  padding-right: 22px;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.9;
+  font-size: 13px;
+}
+.install-dialog-content .primary-button { width: 100%; }
 
 @media (max-width: 720px) {
   main { padding: 16px 10px 56px; }
   #setupScreen { margin-top: 8px; padding: 22px 16px; }
   .app-header { min-height: 62px; padding-inline: 14px; }
+  .install-button {
+    width: 42px;
+    padding: 0;
+  }
+  .install-button span:last-child { display: none; }
+  .install-symbol { margin: 0; }
   .score-strip { position: sticky; top: 68px; z-index: 15; gap: 4px; }
   .score-player { padding: 8px 4px; }
   .score-name { font-size: 9px; }
@@ -646,37 +687,13 @@ dialog::backdrop { background: rgba(10,20,14,.56); }
 }
 
 @media (max-width: 380px) {
+  .app-header h1 { font-size: 20px; }
+  .app-header .eyebrow { font-size: 9px; }
   .players-form { grid-template-columns: 1fr; }
   .round-tab { padding-inline: 2px; }
   .hand-score-entry-grid { grid-template-columns: 1fr; }
 }
 
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
-}
-
-.share-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 18px;
-  padding: 13px 28px;
-  border: 0;
-  border-radius: 9px;
-  color: #fff;
-  background: #25D366;
-  font-size: 15px;
-  font-weight: 800;
-  box-shadow: 0 4px 16px rgba(37, 211, 102, .38);
-  transition: transform .15s, box-shadow .15s;
-  cursor: pointer;
-}
-.share-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(37, 211, 102, .48);
-}
-.share-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(37, 211, 102, .28);
 }

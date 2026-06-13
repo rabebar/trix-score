@@ -14,6 +14,7 @@ const defaultState = {
   targetScore: 31,
   handEndMode: "manual",
   players: ["أحمد", "محمد", "سامر", "عمر"],
+  setupStarter: 0,
   scores: [0, 0, 0, 0],
   history: [],
   activeRound: "king",
@@ -57,6 +58,8 @@ const confirmDialog = document.getElementById("confirmDialog");
 const modeControl = document.getElementById("modeControl");
 const targetControl = document.getElementById("targetControl");
 const handEndControl = document.getElementById("handEndControl");
+const starterControl = document.getElementById("starterControl");
+const starterOptions = document.getElementById("starterOptions");
 const quickGuide = document.getElementById("quickGuide");
 const quickGuideToggle = document.getElementById("quickGuideToggle");
 const quickGuideContent = document.getElementById("quickGuideContent");
@@ -100,13 +103,32 @@ function renderSetup() {
   modeControl.classList.toggle("hidden", state.game === "tarneeb");
   targetControl.classList.toggle("hidden", state.game !== "tarneeb");
   handEndControl.classList.toggle("hidden", state.game !== "hand");
+  starterControl.classList.toggle("hidden", !["trix", "complex"].includes(state.game));
 
+  const seatDetails = [
+    { position: "bottom", label: "المقعد الأول" },
+    { position: "right", label: "المقعد الثاني" },
+    { position: "top", label: "المقعد الثالث" },
+    { position: "left", label: "المقعد الرابع" }
+  ];
+  const showTeams = state.mode === "partnership" || state.game === "tarneeb";
   playersForm.innerHTML = state.players.map((name, index) => `
-    <div class="player-field">
-      <label for="player-${index}">اللاعب ${index + 1}</label>
+    <div class="player-field table-seat seat-${seatDetails[index].position} ${showTeams ? `team-${index % 2 === 0 ? "a" : "b"}` : ""}">
+      <label for="player-${index}">${seatDetails[index].label}</label>
       <input id="player-${index}" maxlength="18" value="${escapeHtml(name)}" autocomplete="off">
-      ${(state.mode === "partnership" || state.game === "tarneeb") ? `<span class="team-hint">${index % 2 === 0 ? "الفريق الأول" : "الفريق الثاني"}</span>` : ""}
+      ${showTeams ? `<span class="team-hint">${index % 2 === 0 ? "الفريق الأول" : "الفريق الثاني"}</span>` : ""}
     </div>
+  `).join("") + `
+    <div class="table-center" aria-hidden="true">
+      <span>اتجاه اللعب</span>
+      <strong>↺</strong>
+    </div>
+  `;
+
+  starterOptions.innerHTML = state.players.map((name, index) => `
+    <button class="choice-button ${state.setupStarter === index ? "active safe" : ""}" type="button" data-setup-starter="${index}">
+      ${escapeHtml(name || `اللاعب ${index + 1}`)}
+    </button>
   `).join("");
 }
 
@@ -135,7 +157,7 @@ function startGame() {
     state.complexScores = [0, 0, 0, 0];
     state.complexHistory = [];
     state.complexKingdom = 1;
-    state.complexOwner = null;
+    state.complexOwner = state.setupStarter;
     state.complexCompleted = [];
     state.complexRound = "complex";
     resetComplexDraft();
@@ -146,7 +168,7 @@ function startGame() {
   state.history = [];
   state.activeRound = "king";
   state.kingdomNumber = 1;
-  state.kingdomOwner = null;
+  state.kingdomOwner = state.setupStarter;
   state.completedRounds = [];
   state.gameFinished = false;
   resetDraft();
@@ -245,9 +267,8 @@ function renderQuickGuide() {
 }
 
 function teamNames(teamIndex) {
-  return teamIndex === 0
-    ? `${state.players[0]} و${state.players[2]}`
-    : `${state.players[1]} و${state.players[3]}`;
+  const [first, second] = Seating.teamPlayerIndexes(teamIndex);
+  return `${state.players[first]} و${state.players[second]}`;
 }
 
 function resetTarneebDraft() {
@@ -1679,6 +1700,32 @@ document.querySelectorAll(".hand-end-choice").forEach(button => {
     state.handEndMode = button.dataset.handEnd;
     renderSetup();
   });
+});
+
+playersForm.addEventListener("input", event => {
+  const input = event.target.closest("input[id^='player-']");
+  if (!input) return;
+  const index = Number(input.id.replace("player-", ""));
+  state.players[index] = input.value;
+  const starterButton = starterOptions.querySelector(`[data-setup-starter="${index}"]`);
+  if (starterButton) starterButton.textContent = input.value.trim() || `اللاعب ${index + 1}`;
+});
+
+playersForm.addEventListener("focusout", saveState);
+
+starterOptions.addEventListener("click", event => {
+  const button = event.target.closest("[data-setup-starter]");
+  if (!button) return;
+  state.setupStarter = Number(button.dataset.setupStarter);
+  renderSetup();
+});
+
+document.getElementById("rotateSeatsButton").addEventListener("click", () => {
+  const rotated = Seating.rotateCounterClockwise(state.players, state.setupStarter);
+  state.players = rotated.players;
+  state.setupStarter = rotated.starter;
+  saveState();
+  renderSetup();
 });
 
 quickGuideToggle.addEventListener("click", () => {

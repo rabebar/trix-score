@@ -38,11 +38,28 @@
           <span class="red">♥</span><span>♠</span><span class="red">♦</span><span>♣</span>
         </div>
         <h2>جهّز الجلسة</h2>
-        <p>اختر نظام المباراة، اكتب أسماء اللاعبين، وابدأ تسجيل ما يحدث على الطاولة.</p>
+        <p>رتّب اللاعبين كما يجلسون حول الطاولة، ثم اختر اللعبة وابدأ التسجيل.</p>
+      </div>
+
+      <div class="control-group table-control">
+        <div class="control-heading">
+          <div>
+            <span class="step-number">1</span>
+            <span class="control-label">رتّب اللاعبين حول الطاولة</span>
+          </div>
+          <button class="small-action" id="rotateSeatsButton" type="button">تدوير المقاعد</button>
+        </div>
+        <p class="control-help">اتجاه اللعب عكس عقارب الساعة. في الشراكة، كل لاعبين متقابلين فريق واحد.</p>
+        <div class="players-form table-seats" id="playersForm"></div>
       </div>
 
       <div class="control-group">
-        <span class="control-label">اللعبة</span>
+        <div class="control-heading">
+          <div>
+            <span class="step-number">2</span>
+            <span class="control-label">اختر اللعبة</span>
+          </div>
+        </div>
         <div class="segmented game-segmented" role="radiogroup" aria-label="اللعبة">
           <button class="segment game-choice active" data-game="trix" role="radio" aria-checked="true">تريكس</button>
           <button class="segment game-choice" data-game="complex" role="radio" aria-checked="false">كومبلكس</button>
@@ -77,7 +94,16 @@
         </div>
       </div>
 
-      <div class="players-form" id="playersForm"></div>
+      <div class="control-group" id="starterControl">
+        <div class="control-heading">
+          <div>
+            <span class="step-number">3</span>
+            <span class="control-label">صاحب المملكة الأولى</span>
+          </div>
+        </div>
+        <p class="control-help">اختره مرة واحدة، ثم ينتقل الدور تلقائيًا حسب ترتيب الطاولة.</p>
+        <div class="starter-options" id="starterOptions"></div>
+      </div>
 
       <button class="primary-button" id="startGameButton">ابدأ المباراة</button>
     </section>
@@ -157,6 +183,7 @@
   <script src="tarneeb-scoring.js"></script>
   <script src="hand-end.js"></script>
   <script src="complex-scoring.js"></script>
+  <script src="seating.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

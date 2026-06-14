@@ -85,6 +85,16 @@
         </div>
       </div>
 
+      <div class="control-group hidden" id="handPlayerCountControl">
+        <span class="control-label">عدد لاعبي هاند</span>
+        <div class="segmented hand-player-count-segmented" role="radiogroup" aria-label="عدد لاعبي هاند">
+          <button class="segment hand-player-count-choice" data-player-count="2" role="radio" aria-checked="false">لاعبان</button>
+          <button class="segment hand-player-count-choice" data-player-count="3" role="radio" aria-checked="false">3 لاعبين</button>
+          <button class="segment hand-player-count-choice active" data-player-count="4" role="radio" aria-checked="true">4 لاعبين</button>
+        </div>
+        <small class="control-help hand-count-help">الشراكة متاحة فقط عند اختيار أربعة لاعبين.</small>
+      </div>
+
       <div class="control-group hidden" id="handEndControl">
         <span class="control-label">طريقة إنهاء هاند</span>
         <div class="segmented hand-end-segmented" role="radiogroup" aria-label="طريقة إنهاء هاند">
@@ -182,6 +192,7 @@
   <script src="progression.js"></script>
   <script src="tarneeb-scoring.js"></script>
   <script src="hand-end.js"></script>
+  <script src="hand-players.js"></script>
   <script src="complex-scoring.js"></script>
   <script src="seating.js"></script>
   <script src="app.js"></script>

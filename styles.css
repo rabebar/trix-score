@@ -146,7 +146,9 @@ main { width: min(1040px, 100%); margin: 0 auto; padding: 28px 18px 70px; }
 .segmented { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; background: #edf1ed; border-radius: 8px; }
 .game-segmented { grid-template-columns: repeat(4, 1fr); }
 .target-segmented { grid-template-columns: repeat(3, 1fr); }
+.hand-player-count-segmented { grid-template-columns: repeat(3, 1fr); }
 .hand-end-segmented { grid-template-columns: repeat(3, 1fr); }
+.hand-count-help { display: block; margin-top: 7px; }
 .segment { min-height: 42px; border: 0; border-radius: 6px; color: var(--muted); background: transparent; font-weight: 700; }
 .segment.active { color: #fff; background: var(--green); box-shadow: 0 4px 10px rgba(15,81,50,.18); }
 
@@ -194,6 +196,18 @@ main { width: min(1040px, 100%); margin: 0 auto; padding: 28px 18px 70px; }
 }
 .table-seat.team-a { border-color: #a8c9b6; }
 .table-seat.team-b { border-color: #d8c394; }
+.table-count-2 {
+  grid-template-areas:
+    ". top ."
+    ". center ."
+    ". bottom .";
+}
+.table-count-3 {
+  grid-template-areas:
+    ". . ."
+    "left center right"
+    ". bottom .";
+}
 .player-field label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
 .player-field input {
   width: 100%;
@@ -406,6 +420,7 @@ main { width: min(1040px, 100%); margin: 0 auto; padding: 28px 18px 70px; }
 .hand-step-head h3 { margin: 0; font-size: 14px; }
 .hand-step-head p { margin: 2px 0 0; color: var(--muted); font-size: 9px; }
 .hand-maker-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.hand-dynamic-grid { grid-template-columns: repeat(var(--hand-grid-count), minmax(0, 1fr)); }
 .hand-score-entry-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
 .hand-score-entry {
   min-width: 0;
@@ -760,7 +775,7 @@ dialog::backdrop { background: rgba(10,20,14,.56); }
   .bid-grid { grid-template-columns: repeat(4, 1fr); }
   .tarneeb-team-grid, .tarneeb-tricks-summary, .tarneeb-preview { grid-template-columns: 1fr; }
   .hand-score-entry-grid { grid-template-columns: 1fr 1fr; }
-  .hand-maker-options { grid-template-columns: 1fr 1fr; }
+  .hand-maker-options, .hand-dynamic-grid { grid-template-columns: 1fr 1fr; }
   .complex-player-choices { grid-template-columns: 1fr 1fr; }
   .complex-queen-double { grid-template-columns: 1fr 1fr; }
   .history-item { grid-template-columns: 1fr; gap: 8px; }

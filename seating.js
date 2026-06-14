@@ -1,8 +1,10 @@
 (function exposeSeating(root) {
-  function rotateCounterClockwise(players, starter) {
+  function rotateCounterClockwise(players, starter, activeCount = players.length) {
+    const active = players.slice(0, activeCount);
+    const inactive = players.slice(activeCount);
     return {
-      players: [players[3], players[0], players[1], players[2]],
-      starter: (starter + 1) % 4
+      players: [active[active.length - 1], ...active.slice(0, -1), ...inactive],
+      starter: (starter + 1) % activeCount
     };
   }
 

@@ -13,6 +13,7 @@ const defaultState = {
   mode: "individual",
   targetScore: 31,
   handEndMode: "manual",
+  handPlayerCount: 4,
   players: ["أحمد", "محمد", "سامر", "عمر"],
   setupStarter: 0,
   scores: [0, 0, 0, 0],
@@ -39,6 +40,10 @@ const defaultState = {
 };
 
 let state = loadState();
+state.handPlayerCount = HandPlayers.normalizeCount(state.handPlayerCount);
+if (!HandPlayers.canUsePartnership(state.handPlayerCount) && state.game === "hand") {
+  state.mode = "individual";
+}
 let pendingRound = null;
 let toastTimer = null;
 let deferredInstallPrompt = null;
@@ -58,6 +63,7 @@ const confirmDialog = document.getElementById("confirmDialog");
 const modeControl = document.getElementById("modeControl");
 const targetControl = document.getElementById("targetControl");
 const handEndControl = document.getElementById("handEndControl");
+const handPlayerCountControl = document.getElementById("handPlayerCountControl");
 const starterControl = document.getElementById("starterControl");
 const starterOptions = document.getElementById("starterOptions");
 const quickGuide = document.getElementById("quickGuide");
@@ -76,6 +82,16 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, draft: null }));
+}
+
+function activePlayerCount() {
+  return state.game === "hand" ? HandPlayers.normalizeCount(state.handPlayerCount) : 4;
+}
+
+function activePlayers() {
+  return state.game === "hand"
+    ? HandPlayers.active(state.players, state.handPlayerCount)
+    : state.players.slice(0, 4);
 }
 
 function renderSetup() {
@@ -99,20 +115,43 @@ function renderSetup() {
     button.classList.toggle("active", active);
     button.setAttribute("aria-checked", String(active));
   });
+  document.querySelectorAll(".hand-player-count-choice").forEach(button => {
+    const active = Number(button.dataset.playerCount) === state.handPlayerCount;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-checked", String(active));
+  });
 
   modeControl.classList.toggle("hidden", state.game === "tarneeb");
   targetControl.classList.toggle("hidden", state.game !== "tarneeb");
   handEndControl.classList.toggle("hidden", state.game !== "hand");
+  handPlayerCountControl.classList.toggle("hidden", state.game !== "hand");
   starterControl.classList.toggle("hidden", !["trix", "complex"].includes(state.game));
+  const partnershipButton = document.querySelector('.mode-choice[data-mode="partnership"]');
+  partnershipButton.disabled = state.game === "hand" && !HandPlayers.canUsePartnership(state.handPlayerCount);
 
-  const seatDetails = [
+  const allSeatDetails = [
     { position: "bottom", label: "المقعد الأول" },
     { position: "right", label: "المقعد الثاني" },
     { position: "top", label: "المقعد الثالث" },
     { position: "left", label: "المقعد الرابع" }
   ];
+  const seatLayouts = {
+    2: [
+      allSeatDetails[0],
+      { position: "top", label: "المقعد الثاني" }
+    ],
+    3: [
+      allSeatDetails[0],
+      allSeatDetails[1],
+      { position: "left", label: "المقعد الثالث" }
+    ],
+    4: allSeatDetails
+  };
+  const playerCount = activePlayerCount();
+  const seatDetails = seatLayouts[playerCount];
   const showTeams = state.mode === "partnership" || state.game === "tarneeb";
-  playersForm.innerHTML = state.players.map((name, index) => `
+  playersForm.className = `players-form table-seats table-count-${playerCount}`;
+  playersForm.innerHTML = activePlayers().map((name, index) => `
     <div class="player-field table-seat seat-${seatDetails[index].position} ${showTeams ? `team-${index % 2 === 0 ? "a" : "b"}` : ""}">
       <label for="player-${index}">${seatDetails[index].label}</label>
       <input id="player-${index}" maxlength="18" value="${escapeHtml(name)}" autocomplete="off">
@@ -125,7 +164,7 @@ function renderSetup() {
     </div>
   `;
 
-  starterOptions.innerHTML = state.players.map((name, index) => `
+  starterOptions.innerHTML = activePlayers().map((name, index) => `
     <button class="choice-button ${state.setupStarter === index ? "active safe" : ""}" type="button" data-setup-starter="${index}">
       ${escapeHtml(name || `اللاعب ${index + 1}`)}
     </button>
@@ -134,9 +173,11 @@ function renderSetup() {
 
 function startGame() {
   const names = [...playersForm.querySelectorAll("input")].map(input => input.value.trim());
-  if (names.some(name => !name)) return showToast("اكتب أسماء اللاعبين الأربعة.");
-  if (new Set(names).size !== 4) return showToast("استخدم اسمًا مختلفًا لكل لاعب.");
-  state.players = names;
+  if (names.some(name => !name)) return showToast("اكتب أسماء جميع اللاعبين.");
+  if (new Set(names).size !== names.length) return showToast("استخدم اسمًا مختلفًا لكل لاعب.");
+  names.forEach((name, index) => {
+    state.players[index] = name;
+  });
   state.gameFinished = false;
   if (state.game === "tarneeb") {
     state.mode = "partnership";
@@ -147,7 +188,7 @@ function startGame() {
     return showGame();
   }
   if (state.game === "hand") {
-    state.handScores = state.mode === "partnership" ? [0, 0] : [0, 0, 0, 0];
+    state.handScores = Array(HandPlayers.scoreCount(state.handPlayerCount, state.mode)).fill(0);
     state.handHistory = [];
     resetHandDraft();
     saveState();
@@ -189,6 +230,7 @@ function showSetup() {
 }
 
 function renderGame() {
+  scoreStrip.style.removeProperty("grid-template-columns");
   document.querySelector(".app-header h1").textContent =
     state.game === "tarneeb" ? "طرنيب" :
     state.game === "hand" ? "هاند" :
@@ -608,7 +650,7 @@ function renderComplexTrixRound() {
 }
 
 function resetHandDraft() {
-  const scoreCount = state.mode === "partnership" ? 2 : 4;
+  const scoreCount = HandPlayers.scoreCount(state.handPlayerCount, state.mode);
   state.handDraft = {
     scores: Array(scoreCount).fill(null),
     signs: Array(scoreCount).fill(1),
@@ -617,12 +659,15 @@ function resetHandDraft() {
 }
 
 function renderHandGame() {
-  const expectedScores = state.mode === "partnership" ? 2 : 4;
+  const expectedScores = HandPlayers.scoreCount(state.handPlayerCount, state.mode);
   if (!state.handDraft?.scores || state.handDraft.scores.length !== expectedScores) resetHandDraft();
   if (state.handDraft.handMaker === undefined) state.handDraft.handMaker = null;
   const partnership = state.mode === "partnership";
   scoreStrip.classList.toggle("partnership", partnership);
-  const scoreNames = partnership ? [teamNames(0), teamNames(1)] : state.players;
+  if (!partnership) {
+    scoreStrip.style.gridTemplateColumns = `repeat(${state.handPlayerCount}, minmax(0, 1fr))`;
+  }
+  const scoreNames = partnership ? [teamNames(0), teamNames(1)] : activePlayers();
   scoreStrip.innerHTML = state.handScores.map((score, index) => `
     <div class="score-player ${partnership && index === 1 ? "team-b" : ""}">
       <span class="score-name">${escapeHtml(scoreNames[index])}</span>
@@ -659,7 +704,7 @@ function renderHandWorkspace() {
   if (state.gameFinished) {
     const entries = state.mode === "partnership"
       ? state.handScores.map((score, index) => ({ name: teamNames(index), score }))
-      : state.handScores.map((score, index) => ({ name: state.players[index], score }));
+      : state.handScores.map((score, index) => ({ name: activePlayers()[index], score }));
     const ranking = entries.sort((a, b) => a.score - b.score);
     const winners = ranking.filter(entry => entry.score === ranking[0].score);
     roundWorkspace.innerHTML = `
@@ -675,7 +720,7 @@ function renderHandWorkspace() {
   }
 
   const draft = state.handDraft;
-  const names = state.mode === "partnership" ? [teamNames(0), teamNames(1)] : state.players;
+  const names = state.mode === "partnership" ? [teamNames(0), teamNames(1)] : activePlayers();
   roundWorkspace.innerHTML = `
     <section class="hand-step">
       <div class="hand-step-head">
@@ -685,9 +730,9 @@ function renderHandWorkspace() {
           <p>اختياري، ويظهر في السجل فقط.</p>
         </div>
       </div>
-      <div class="hand-maker-options">
+      <div class="hand-maker-options hand-dynamic-grid" style="--hand-grid-count:${activePlayers().length + 1}">
         <button class="choice-button ${draft.handMaker === null ? "active safe" : ""}" data-hand-maker="none">لا أحد</button>
-        ${state.players.map((name, index) => `
+        ${activePlayers().map((name, index) => `
           <button class="choice-button ${draft.handMaker === index ? "active" : ""}" data-hand-maker="${index}">
             ${escapeHtml(name)}
           </button>
@@ -1045,7 +1090,7 @@ function prepareHandRound() {
   }
   const changes = detail.scores.map((score, index) => score * detail.signs[index]);
   pendingRound = { game: "hand", changes, detail, createdAt: Date.now() };
-  const names = state.mode === "partnership" ? [teamNames(0), teamNames(1)] : state.players;
+  const names = state.mode === "partnership" ? [teamNames(0), teamNames(1)] : activePlayers();
   document.getElementById("dialogTitle").textContent = `تأكيد جولة هاند ${state.handHistory.length + 1}`;
   document.getElementById("dialogSummary").innerHTML = names.map((name, index) => `
     <div class="dialog-score-row"><span>${escapeHtml(name)}</span><strong>${formatSigned(changes[index])}</strong></div>
@@ -1225,7 +1270,7 @@ function renderHandHistory() {
     historyList.innerHTML = `<p class="empty-state">لم تُسجّل أي جولة هاند بعد.</p>`;
     return;
   }
-  const names = state.mode === "partnership" ? [teamNames(0), teamNames(1)] : state.players;
+  const names = state.mode === "partnership" ? [teamNames(0), teamNames(1)] : activePlayers();
   const lowest = Math.min(...state.handScores);
   historyList.innerHTML = `
     <section class="history-totals">
@@ -1233,7 +1278,8 @@ function renderHandHistory() {
         <strong>النتيجة الحالية</strong>
         <span>الأقل نقاطًا يتصدر</span>
       </div>
-      <div class="history-total-grid ${state.mode === "partnership" ? "tarneeb-total-grid" : ""}">
+      <div class="history-total-grid ${state.mode === "partnership" ? "tarneeb-total-grid" : "hand-dynamic-grid"}"
+           ${state.mode === "partnership" ? "" : `style="--hand-grid-count:${names.length}"`}>
         ${names.map((name, index) => `
           <div class="history-total-player ${state.handScores[index] === lowest ? "leader" : ""}">
             <span>${escapeHtml(name)}</span>
@@ -1260,7 +1306,8 @@ function renderHandHistory() {
                   : `<small class="hand-badge">هاند: ${escapeHtml(state.players[item.detail.handMaker])}</small>`}
               </div>
             </div>
-            <div class="history-scores ${state.mode === "partnership" ? "tarneeb-history-scores" : ""}">
+            <div class="history-scores ${state.mode === "partnership" ? "tarneeb-history-scores" : "hand-dynamic-grid"}"
+                 ${state.mode === "partnership" ? "" : `style="--hand-grid-count:${names.length}"`}>
               ${names.map((name, index) => `
                 <span><b>${escapeHtml(name)}</b>${formatSigned(item.changes[index])}</span>
               `).join("")}
@@ -1677,12 +1724,14 @@ document.querySelectorAll(".game-choice").forEach(button => {
   button.addEventListener("click", () => {
     state.game = button.dataset.game;
     if (state.game === "tarneeb") state.mode = "partnership";
+    if (state.game === "hand" && !HandPlayers.canUsePartnership(state.handPlayerCount)) state.mode = "individual";
     renderSetup();
   });
 });
 
 document.querySelectorAll(".mode-choice").forEach(button => {
   button.addEventListener("click", () => {
+    if (state.game === "hand" && !HandPlayers.canUsePartnership(state.handPlayerCount) && button.dataset.mode === "partnership") return;
     state.mode = button.dataset.mode;
     renderSetup();
   });
@@ -1698,6 +1747,17 @@ document.querySelectorAll(".target-choice").forEach(button => {
 document.querySelectorAll(".hand-end-choice").forEach(button => {
   button.addEventListener("click", () => {
     state.handEndMode = button.dataset.handEnd;
+    renderSetup();
+  });
+});
+
+document.querySelectorAll(".hand-player-count-choice").forEach(button => {
+  button.addEventListener("click", () => {
+    state.handPlayerCount = HandPlayers.normalizeCount(button.dataset.playerCount);
+    if (!HandPlayers.canUsePartnership(state.handPlayerCount)) state.mode = "individual";
+    if (state.setupStarter >= state.handPlayerCount) state.setupStarter = 0;
+    resetHandDraft();
+    saveState();
     renderSetup();
   });
 });
@@ -1721,7 +1781,7 @@ starterOptions.addEventListener("click", event => {
 });
 
 document.getElementById("rotateSeatsButton").addEventListener("click", () => {
-  const rotated = Seating.rotateCounterClockwise(state.players, state.setupStarter);
+  const rotated = Seating.rotateCounterClockwise(state.players, state.setupStarter, activePlayerCount());
   state.players = rotated.players;
   state.setupStarter = rotated.starter;
   saveState();
